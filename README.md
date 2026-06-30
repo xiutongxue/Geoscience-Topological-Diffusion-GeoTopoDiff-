@@ -6,7 +6,7 @@ This repository accompanies the manuscript:
 
 **A Diffusion Model Based on Stratigraphic Bedding and Borehole-Circumferential Topological Constraints**
 
-![GeoTopoDiff framework](img_folder/framework.jpg)
+![GeoTopoDiff framework](img_folder/GeoTopoDiff.png)
 
 ## Authors
 
