@@ -1,0 +1,380 @@
+# Copyright (c) 2022 Huawei Technologies Co., Ltd.
+# Licensed under CC BY-NC-SA 4.0 (Attribution-NonCommercial-ShareAlike 4.0 International) (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode
+#
+# The code is released for academic research use only. For commercial use, please contact Huawei Technologies Co., Ltd.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# This repository was forked from https://github.com/openai/guided-diffusion, which is under the MIT license
+# Context mean ring (for mean-anchoring the target)
+# Mask dilation pixels: critical parameter
+# 1px: resolves minor edge misses
+# 2px: stronger denoising effect (anchor farther from edge)
+# === Boundary Gradient / Direction Prior (new) ===
+
+mask_dilate_pixels: 0
+# Context Mean dynamic ring (default true)
+# Discrete table: all three syntax formats are supported
+# Whether to clip generated results to [-1, 1] (usually must be true, otherwise over-saturation/noise may occur)
+clip_denoised: true
+
+# Whether to use DDIM accelerated sampling (False uses standard DDPM)
+use_ddim: false
+
+# If the model is class-conditional, force the generated class (e.g. FMI has specific lithology classes)
+# Leave empty for random sampling
+cond_y: null  # or a specific integer class ID, e.g. 0
+# HSG Stat dynamic ring (default true)
+
+
+# HSG statistics ring (for mean/variance consistency)
+# === Seam / boundary match prior ===
+
+# === Context Mean Prior: local mean amplitude anchoring (prevents darkening/pulling dark) ===
+
+# === Row Interp Prior (new: full-height stripes rely more on left/right known pixels) ===
+# Only enabled for near-full-height vertical stripe columns (controlled by stripe_thr)
+# Narrow gap threshold: holes smaller than 12 pixels are treated as cracks/lines, with aggressive interpolation
+# This means each extended pixel's brightness is multiplied by 0.9, rapid decay to avoid "laser sword" artifacts
+# New key parameter (add to conf.get if desired)
+# === HSG (Option 2: horizontal stripe structural consistency guidance) ===
+# Goal: make the inpainted region seamlessly join left/right known regions horizontally, reducing block drift / seam artifacts
+
+# Boundary alignment: late-stage enhancement (finishing)
+
+# Horizontal smoothing: stronger early, weaker later (prevents vertical fractures)
+
+# Statistical consistency: assists against whole-block darkening/brightening
+
+# === Prevent "black columns": vertical constraints disabled by default for full-height stripe columns ===
+depth_exclude_stripe: true
+vertical_smooth_exclude_stripe: true
+# === Keep-mask-based stripe detection threshold (new) ===
+
+# === Electrode Topology Prior: electrode-direction horizontal consistency (strong early, weak later) ===
+
+# === Depth-direction prior (late-stage enhancement) ===
+
+# === Vertical trend smoothing (late-stage enhancement) ===
+
+# ============================================================
+# New: stripe core region denoising smoothing prior
+# Low-weight cleanup only, does not replace row_interp
+# ============================================================
+
+# ============================================================
+# Texture Energy Prior: convergent version, low weight to avoid granular vertical columns
+# ============================================================
+
+# Focus: reduce Laplacian and non-directional high frequency
+
+# Only encourage moderate recovery of "insufficient texture", while penalizing excessive high frequency
+
+# Wide stripes and unreliable regions are automatically down-weighted
+
+# === Context Range Prior: limit anomalous over-bright/over-dark in inpainted region ===
+
+# Only penalize beyond mean ± k * std; normal texture variation is not penalized
+
+# Wide stripes are automatically down-weighted
+
+# === Row Interp Anchor Confidence Gate ===
+
+# Wide stripes reduce interpolation push
+row_interp_narrow_width: 8
+row_interp_wide_width: 24
+row_interp_wide_scale: 0.45
+# === Physical Prior: depth-direction prior (vertical smoothing) new content ===
+
+# ============================================================
+# Coarse Prefill + RePaint Texture Refiner, sampling modification without retraining
+# Goal: convert RePaint from a random content generator to a texture refiner on deterministic coarse inpainting
+# ============================================================
+coarse_prefill_enable: true
+coarse_prefill_method: harmonic_width_aware
+prefill_wide_row_ratio: 0.0
+
+# Mask width grouping
+prefill_narrow_width: 6
+prefill_medium_width: 25
+prefill_anchor_k: 5
+prefill_harmonic_iters: 300
+prefill_harmonic_kernel: 8conn
+prefill_mask_dilate_for_coarse: 0
+
+# RePaint starts from noisy coarse x0 instead of pure randn
+repaint_init_from_coarse: true
+repaint_refine_strength: 0.22
+repaint_seed_mode: name_hash
+repaint_seed_base: 20260525
+
+# High-frequency texture fusion: low frequency from coarse, high frequency from RePaint
+texture_fusion_enable: true
+texture_fusion_sigma: 1.5
+texture_fusion_gain: 0.68
+texture_fusion_low_repaint_ratio: 0.13
+
+# Force known-region backfill before final save
+final_hard_merge: true
+
+# Debug output
+prefill_debug_enable: true
+prefill_debug_dir: ./log/FMI/prefill_debug
+prefill_debug_max_batches: 10
+attention_resolutions: 32,16,8
+class_cond: false
+diffusion_steps: 1000
+learn_sigma: false
+noise_schedule: linear
+num_channels: 256
+num_head_channels: 64
+num_heads: 4
+num_res_blocks: 2
+resblock_updown: true
+use_fp16: true
+use_scale_shift_norm: true
+classifier_scale: 0.0
+lr_kernel_n_std: 2
+num_samples: 100
+show_progress: false
+timestep_respacing: '250'
+use_kl: false
+predict_xstart: false
+rescale_timesteps: false
+rescale_learned_sigmas: false
+classifier_use_fp16: false
+classifier_width: 128
+classifier_depth: 2
+classifier_attention_resolutions: 32,16,8
+classifier_use_scale_shift_norm: true
+classifier_resblock_updown: true
+classifier_pool: attention
+num_heads_upsample: -1
+channel_mult: ''
+dropout: 0.0
+use_checkpoint: false
+use_new_attention_order: false
+latex_name: RePaint
+method_name: Repaint
+image_size: 256
+model_path: ./data/pretrained/model_step_32000.pt
+name: FMI_Image
+inpa_inj_sched_prev: true
+n_jobs: 1
+print_estimated_vars: false
+inpa_inj_sched_prev_cumnoise: false
+schedule_jump_params:
+  t_T: 250
+  n_sample: 1
+  jump_length: 15
+  jump_n_sample: 10
+
+# ============================================================
+# Prior Debug Diagnostics: only saves intermediate diagnostic images, does not affect sampling logic
+# ============================================================
+
+
+data:
+  eval:
+    paper_face_mask:
+      mask_loader: true
+      gt_path: ./data/datasets/gts/fmi
+      mask_path: ./data/datasets/gt_keep_masks/fmi
+      image_size: 256
+      class_cond: false
+      deterministic: true
+      random_crop: false
+      random_flip: false
+      return_dict: true
+      drop_last: false
+      batch_size: 4
+      return_dataloader: true
+      offset: 0
+      max_len: null
+      paths:
+        srs: ./log/FMI/inpainted
+        lrs: ./log/FMI/gt_masked
+        gts: ./log/FMI/gt
+        gt_keep_masks: ./log/FMI/gt_keep_mask
+# ============================================================
+# Recommended samples:
+# x000_y009344
+# x104_y009216
+# x104_y009728
+# x104_y009856
+# x104_y010112
+# ============================================================
+
+# ------------------------------------------------------------
+# Purpose: observe only basic constraint results (row_interp / smooth / boundary).
+# ------------------------------------------------------------
+# row_interp_dip_search_range: 6
+# row_interp_anchor_gate_enable: true
+
+# ------------------------------------------------------------
+# Purpose: determine whether vertical granular columns come from erroneous anchor search.
+# ------------------------------------------------------------
+# row_interp_dip_search_range: 0
+
+# ------------------------------------------------------------
+# Purpose: determine whether light texture recovery re-introduces vertical columns.
+# ------------------------------------------------------------
+
+# ------------------------------------------------------------
+# Purpose: determine whether range clamp can suppress white/black columns without introducing grain.
+# ------------------------------------------------------------
+
+# ------------------------------------------------------------
+# Purpose: only try after B does not clearly produce vertical columns and C has a suppressive effect.
+# ------------------------------------------------------------
+# ============================================================
+# v3c: Bypass Repaint + Stat Mask + Texture Fusion
+# ============================================================
+
+# Coarse Prefill
+coarse_prefill_enable: true
+coarse_prefill_sigma: 1.0
+coarse_prefill_harmonic_weight: 0.3
+
+# RePaint (bypassed in v3c)
+repaint_init_from_coarse: true
+repaint_refine_strength: 0.22
+repaint_seed_base: 20260525
+repaint_seed_mode: "name_hash"
+
+# Texture Fusion
+texture_fusion_enable: true
+texture_fusion_sigma: 1.2
+texture_fusion_gain: 1.0
+texture_fusion_low_repaint_ratio: 0.25
+texture_fusion_bypass_stat_mask: true
+texture_fusion_stat_repaint_alpha: 0.0
+
+# Final Hard Merge
+final_hard_merge: true
+
+# Routing
+routing_enable: true
+routing_narrow_max_width: 6
+routing_medium_max_width: 25
+routing_wide_min_width: 26
+routing_long_vertical_min_height: 64
+routing_long_vertical_min_aspect: 3.0
+routing_long_vertical_min_width: 4
+
+# Prefill Debug
+prefill_debug_enable: true
+prefill_debug_dir: "./log/FMI/prefill_debug"
+prefill_debug_max_batches: 2
+prefill_error_debug_enable: true
+
+# P1-B
+p1b_enable: true
+
+# P2-A
+p2a_enable: true
+p2a_seam_inner_width: 4
+p2a_seam_outer_width: 4
+p2a_texture_sigma: 2.0
+p2a_context_width: 15
+p2a_center_top_ratio: 0.2
+p2a_center_min_pixels: 16
+
+# P2-B (frozen)
+
+# P2-C0 (frozen)
+
+# P3-B1
+
+# P3-C
+
+# P3-D1
+
+# ============================================================
+# P3-D2: single-prior ablation experiment
+# ============================================================
+
+# D2-1: stat + boundary (first priority)
+
+# D2-1b: stat sweep (strength-mechanism discrimination)
+
+# D2-2: layer + boundary (second priority)
+
+# D2-2R: layer repair (verify after fixing trigger logic)
+
+# Layer-v3: Low-frequency trend prior debug (no optimization)
+
+# Layer-v3R: 2D continuous trend + confidence debug (no optimization)
+
+# Layer-v3R Ablation: formal optimization with v3R prior + boundary
+
+# Layer-v3 parameters
+
+# Layer-v3R parameters
+layer_v3r_ctx_width: 20
+layer_v3r_target_sigma: 15.0
+layer_v3r_loss_sigma: 3.0
+layer_v3r_seam_guard_width: 6
+layer_v3r_conf_dist_scale: 20.0
+layer_v3r_conf_min_ctx: 3
+
+# D2-3: layer + stat + boundary (third priority)
+
+# D2-4: bridge + boundary (fourth priority)
+
+# ============================================================
+# Common prior parameters
+# ============================================================
+
+# Boundary Guard Prior
+
+# Layer Continuity Prior
+
+# Split-Window Stat Prior
+
+# High-Resistivity Bridge Prior
+
+# ============================================================
+# P4-1a: Sampling Guidance v2 — Safety Plumbing Probe
+# ============================================================
+p4_write_to_final: false
+
+# P4 Stat-v2: Multi-scale texture guidance (debug only)
+
+# ============================================================
+# P6-0: ALT-3 Minimal Geology-Guided Sampling (Limited Auth)
+# ============================================================
+
+# P6 Boundary guard
+
+# P6 Stat-v2 / Layer-v2 / Bridge-v2 (disabled for P6-2)
+
+# ============================================================
+# P7-0: GeoGuide Final Candidate (Debug Only)
+# ============================================================
+p7_geoguide_enable: true
+p7_write_to_final: false
+p7_debug: true
+
+# P7-1: Layer Base Candidate (reuse D2-2R mechanism)
+p7_layer_base_enable: true
+p7_layer_base_apply_to_output: true
+p7_layer_base_strength: 0.30
+layer_v3r_ctx_width: 20
+layer_v3r_target_sigma: 15.0
+layer_v3r_loss_sigma: 3.0
+layer_v3r_seam_guard_width: 6
+layer_v3r_conf_dist_scale: 20.0
+layer_v3r_conf_min_ctx: 3
+
+# P7-2: Texture-Preserving Layer Guidance
+p7_layer_texture_safe_enable: true
+p7_layer_texture_safe_alpha: 0.60
+p7_layer_texture_safe_sigma: 4.0
