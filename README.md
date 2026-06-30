@@ -78,10 +78,11 @@ data/datasets/gts/fmi/
 
 Example filenames:
 
-```text
-FMI_001.png
-FMI_002.jpg
-```
+<p align="center">
+  <img src="GeoTopoDiff/img_folder/FMI_008448_to_010623.png"
+       alt="Example"
+       width="360">
+</p>
 
 Large FMI logging images should first be cropped into non-overlapping or predefined `256 × 256` patches.
 
