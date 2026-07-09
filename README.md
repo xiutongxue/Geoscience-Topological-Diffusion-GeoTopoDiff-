@@ -48,8 +48,8 @@ GeoTopoDiff/
 │   │   ├── gts/
 │   │   │   └── fmi/
 │   │   └── gt_keep_masks/
-│   │       └── fmi/
-│   └── pretrained
+│   │       └── fmi/model_step_32000.pt
+│   └── pretrained/
 ├── img_folder/
 │   ├── framework.jpg
 │   └── example.jpg
