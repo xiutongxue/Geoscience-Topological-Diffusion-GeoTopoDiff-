@@ -44,11 +44,12 @@ GeoTopoDiff/
 ├── confs/
 │   └── FMI_Image.yml
 ├── data/
-│   └── datasets/
-│       ├── gts/
-│       │   └── fmi/
-│       └── gt_keep_masks/
-│           └── fmi/
+│   ├── datasets/
+│   │   ├── gts/
+│   │   │   └── fmi/
+│   │   └── gt_keep_masks/
+│   │       └── fmi/
+│   └── pretrained
 ├── img_folder/
 │   ├── framework.jpg
 │   └── example.jpg
